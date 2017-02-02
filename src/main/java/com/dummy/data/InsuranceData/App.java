@@ -172,7 +172,11 @@ public class App {
 		int premiumInsurance = df.getNumberBetween(200, 400);
 		if(insuranceontractors=="0"){
 			premiumPaid=0;
+		}
+		if(insuranceonbarns=="0"){
 			premiumPaidbarns=0;
+		}
+		if(incomeInsurance=="0"){
 			premiumInsurance=0;
 		}
 
