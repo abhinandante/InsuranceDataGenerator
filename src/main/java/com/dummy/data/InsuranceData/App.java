@@ -151,6 +151,9 @@ public class App {
 		String seeds = businessArray[df.getNumberBetween(0, 4)];
 		String disease = businessArray[df.getNumberBetween(0, 4)];
 		int lossSuffered = df.getNumberBetween(0, 10000);
+		if(disease=="0"){
+			lossSuffered=0;
+		}
 
 		String csvRow = name + "," + address + "," + country + "," + areaFarming + "," + typeofCrop + "," + pesticides
 				+ "," + totalamount + "," + seeds + "," + disease + "," + lossSuffered;
@@ -167,6 +170,11 @@ public class App {
 		int premiumPaidbarns = df.getNumberBetween(200, 400);
 		String incomeInsurance = businessArray[df.getNumberBetween(0, 4)];
 		int premiumInsurance = df.getNumberBetween(200, 400);
+		if(insuranceontractors=="0"){
+			premiumPaid=0;
+			premiumPaidbarns=0;
+			premiumInsurance=0;
+		}
 
 		String csvRow = name + "," + address + "," + country + "," + insuranceontractors + "," + premiumPaid + ","
 				+ insuranceonbarns + "," + premiumPaidbarns + "," + incomeInsurance + "," + premiumInsurance;
@@ -206,13 +214,15 @@ public class App {
 	}
 
 	public static void main(String[] args) throws IOException {
-		if (args.length < 2) {
+		/*if (args.length < 2) {
 			System.out.println("Please enter <Destination Location> <No no Line>");
 		} else {
 			String destLocation = args[0];
 			int row = Integer.parseInt(args[1]);
 			generateClientInformation(destLocation, row);
-		}
+		}*/
+		
+		generateClientInformation("/home/abhinandan/Desktop/dump", 100);
 	}
 
 }
