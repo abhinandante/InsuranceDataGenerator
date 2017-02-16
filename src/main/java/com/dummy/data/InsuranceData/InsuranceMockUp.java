@@ -3,6 +3,9 @@ package com.dummy.data.InsuranceData;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 import org.fluttercode.datafactory.impl.DataFactory;
 
@@ -16,7 +19,11 @@ public class InsuranceMockUp {
 	private static final String[] businessArray = { "0", "1", "0", "1", "0" };
 	private static final String[] AssetsTypes = {"farmland","tractor","farming", "equipments","seeds"};
 	private static final String[] crop={"Rice","Wheat","Maize","Barley"};
-	private static final String[] InsuranceTypes={"fire","flood", "disease of crops", "insect","attack", "birds attack", "storm","others"};
+	private static final String[] InsuranceTypes={"fire","flood", "disease of crops", "insect attack", "birds attack", "storm","others"};
+	private static final String[] InsuranceNames={"Fire_Savior","flood_Protector", "crops_controller", "insect_salvager", "birds_salvager", "storm_Guardian","others"};
+
+	//create Calendar instance
+    private static final Calendar now = Calendar.getInstance();
 	
 	public static void createDirectoryIfNeeded(String directoryName) {
 		File theDir = new File(directoryName);
@@ -45,12 +52,47 @@ public class InsuranceMockUp {
 		clientAssetswriter.flush();
 		
 		//Client FH_Insurance_Types Generation
-		String filePath2 = saveDir + "/clientAssets" + unixTime + ".csv";
+		String filePath2 = saveDir + "/policyTypes" + unixTime + ".csv";
 		CSVWriter fhInsuranceType = new CSVWriter(new FileWriter(filePath2), CSVWriter.DEFAULT_SEPARATOR,
 				CSVWriter.NO_QUOTE_CHARACTER);
 		String fhInsuranceTypeHeader = "PolicyID,Types_of_Insurance,Insurance_Name,Insurance_Amount,Premium_Amount,Coverage_Amount";
 		fhInsuranceType.writeNext(fhInsuranceTypeHeader.split(","));
 		fhInsuranceType.flush();
+		
+		//Client Client_Policy Generation
+		String filePath3 = saveDir + "/clientPolicy" + unixTime + ".csv";
+		CSVWriter clientPolicy = new CSVWriter(new FileWriter(filePath3), CSVWriter.DEFAULT_SEPARATOR,
+				CSVWriter.NO_QUOTE_CHARACTER);
+		String clientPolicyHeader = "Id,PolicyID,Asset_ID,Zone_ID,Client_ID";
+		clientPolicy.writeNext(clientPolicyHeader.split(","));
+		clientPolicy.flush();
+		
+		//Client Pest Control Generation
+		String filePath4 = saveDir + "/pestControl" + unixTime + ".csv";
+		CSVWriter pestControl = new CSVWriter(new FileWriter(filePath4), CSVWriter.DEFAULT_SEPARATOR,
+						CSVWriter.NO_QUOTE_CHARACTER);
+		String pestControlHeader = "ID,HYM_Seed,Pesticide_Use,Recent_Disease,Recent_loss";
+		pestControl.writeNext(pestControlHeader.split(","));
+		pestControl.flush();
+		
+		
+		//Client IoT Data
+		String filePath5 = saveDir + "/iotData" + unixTime + ".csv";
+		CSVWriter iotData = new CSVWriter(new FileWriter(filePath5), CSVWriter.DEFAULT_SEPARATOR,
+						CSVWriter.NO_QUOTE_CHARACTER);
+		String iotDataHeader = "Id,Time_Stamp,Soil_Mosisture,Temperature,Humidity,Nutrient_Lvl,Vibration,CO2_Concentration,Smoke_Alert,Sound_vibration,Asset_id,Zone_ID";
+		iotData.writeNext(iotDataHeader.split(","));
+		iotData.flush();
+		
+		//Client claims Data
+		String filePath6 = saveDir + "/claimsData" + unixTime + ".csv";
+		CSVWriter claimsData = new CSVWriter(new FileWriter(filePath6), CSVWriter.DEFAULT_SEPARATOR,
+								CSVWriter.NO_QUOTE_CHARACTER);
+		String claimsDataHeader = "ID,Claim_Amount,claim_Date,Defaulter,Premium_Qualified,client_id,policy_id";
+		claimsData.writeNext(claimsDataHeader.split(","));
+		claimsData.flush();
+		
+		
 		
 		for(long i=0;i<row;i++){
 			String ClientID=df.getRandomChars(1)+String.valueOf((df.getNumberBetween(100000000, 999999999)));
@@ -66,14 +108,30 @@ public class InsuranceMockUp {
 			int experince = df.getNumberBetween(2, 15);
 			
 			String csvRow = ClientID+","+fName+","+lName+","+address+","+country+","+phno+","+family_business+","+age+","+family_member_cnt+","+family_income+","+experince;
+			String Client_Assets = generateClinetAsset(address,country,ClientID,clientAssetswriter);
+			String PolicyID = generatePolicyTypes(family_income, fhInsuranceType);
+			String Client_Assets_Zone[] = Client_Assets.split("_");
+			generateClientPolicy(PolicyID, Client_Assets_Zone[0], Client_Assets_Zone[1], ClientID, clientPolicy);
+			genetateClaims(ClientID, PolicyID, claimsData);
+			generatePestControl(Client_Assets_Zone[0], Client_Assets_Zone[1], pestControl);
+			iotData(Client_Assets_Zone[0], Client_Assets_Zone[1], iotData);
 			writer.writeNext(csvRow.split(","));
 			writer.flush();
 		}
 		
+		writer.close();
+		clientAssetswriter.close();
+		fhInsuranceType.close();
+		clientPolicy.close();
+		claimsData.close();
+		pestControl.close();
+		iotData.close();
+		
+		
 	}
 	
 	
-	public static void generateClinetAsset(String Address,String Country,String ClientID, CSVWriter writer) throws IOException{
+	public static String generateClinetAsset(String Address,String Country,String ClientID, CSVWriter writer) throws IOException{
 		String AssetsID=df.getRandomChars(2)+String.valueOf(df.getNumberBetween(100000000, 999999999));
 		String zoneID = df.getRandomChars(2)+String.valueOf(df.getNumberBetween(100000000, 999999999));
 		String types_of_assets = AssetsTypes[df.getNumberBetween(0, 4)];
@@ -84,19 +142,22 @@ public class InsuranceMockUp {
 		String csvRow=AssetsID+","+zoneID+","+Address+","+Country+","+types_of_assets+","+types_of_crops+","+total_yeild_yearly+","+multicropping+","+assets_type;
 		writer.writeNext(csvRow.split(","));
 		writer.flush();
+		return AssetsID+"_"+zoneID;
 		
 	}
 	
-	public static void generatePolicyTypes(int income,CSVWriter writer) throws IOException{
+	public static String generatePolicyTypes(int income,CSVWriter writer) throws IOException{
 		String policyID=df.getRandomChars(2)+String.valueOf(df.getNumberBetween(11111111, 999999999));
-		String typesofInsurance=InsuranceTypes[df.getNumberBetween(0, 8)];
-		String Insurance_Name="";
+		int index=df.getNumberBetween(0, 6);
+		String typesofInsurance=InsuranceTypes[index];
+		String Insurance_Name=InsuranceNames[index];
 		int Insurance_Ammount=df.getNumberBetween(income/10, (income/10)*2);
 		int Premium_Ammount=0;
 		int Coverage_Amount=0;
 		String csvRow=policyID+","+typesofInsurance+","+Insurance_Name+","+Insurance_Ammount+","+Premium_Ammount+","+Coverage_Amount;
 		writer.writeNext(csvRow.split(","));
 		writer.flush();
+		return policyID;
 	}
 	
 	
@@ -106,5 +167,71 @@ public class InsuranceMockUp {
 		writer.writeNext(csvRow.split(","));
 		writer.flush();
 	} 
+	
+	public static void iotData(String AssetsID, String zoneID, CSVWriter writer) throws IOException {
+		Date dNow = new Date();
+		SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+
+		String ID = df.getRandomChars(2)+String.valueOf(df.getNumberBetween(10000000, 999999999));
+		String iotDateTime = ft.format(dNow);
+		String zoneid = zoneID;
+		String Assetsid = AssetsID;
+		String latitude = "1.35" + df.getNumberBetween(20, 99);
+		String logitude = "103.81" + df.getNumberBetween(20, 99);
+		String soilmoisture = "0." + df.getNumberBetween(0, 45);
+		String temperature = String.valueOf(df.getNumberBetween(0, 40));
+		String humidity = String.valueOf(df.getNumberBetween(0, 100));
+		String nutrientlevel = String.valueOf(df.getNumberBetween(0, 15));
+		int smokealarm = df.getNumberBetween(0, 2);
+		int co2concentration = df.getNumberBetween(250, 500);
+		int vibration = df.getNumberBetween(10, 180);
+		int sound_vibration = df.getNumberBetween(10, 180);
+		String csvRow = ID+","+iotDateTime + "," + soilmoisture + "," + temperature + "," + humidity + "," + nutrientlevel + ","
+				+ vibration + "," + co2concentration + "," + smokealarm + "," + sound_vibration + "," + Assetsid + ","
+				+ zoneid;
+		writer.writeNext(csvRow.split(","));
+		writer.flush();
+
+	}
+	
+	
+	public static void generatePestControl(String AssetsID, String zoneID, CSVWriter writer) throws IOException {
+		
+		String pestID=df.getRandomChars(1)+String.valueOf(df.getNumberBetween(1000000, 999999999));
+		String pesticides = businessArray[df.getNumberBetween(0, 4)];
+		String seeds = businessArray[df.getNumberBetween(0, 4)];
+		String disease = businessArray[df.getNumberBetween(0, 4)];
+		int lossSuffered = df.getNumberBetween(0, 10000);
+		if (disease == "0") {
+			lossSuffered = 0;
+		}
+
+		String csvRow = pestID + "," + seeds +"," +pesticides+ "," + disease + "," + lossSuffered + "," + AssetsID + "," + zoneID ;
+		writer.writeNext(csvRow.split(","));
+		writer.flush();
+	}
+	
+	
+	public static void genetateClaims(String Client_ID,String policyID, CSVWriter writer) throws IOException{
+		
+		String claimsID=df.getRandomChars(1)+String.valueOf(df.getNumberBetween(22222222, 888888888));
+		int claimAmmount=df.getNumberBetween(50000, 100000);
+		now.add(Calendar.MONTH, -3);
+		String claimsDate = df.getDateBetween(now.getTime(), new Date()).toString();
+		String defaulter = businessArray[df.getNumberBetween(0, 4)]; 
+		int preminumQualified = df.getNumberBetween(10000, 80000);
+		String csvRow=claimsID+","+claimAmmount+","+claimsDate+","+defaulter+","+preminumQualified+","+Client_ID+","+policyID;
+		writer.writeNext(csvRow.split(","));
+		writer.flush();
+	}
+	
+	
+	public static void main(String args[]) throws IOException{
+     
+		String saveDir="/home/abhinandan/Desktop/dump";
+		long row=1000;
+		generateClientInformation(saveDir,row);
+		
+	}
 
 }
