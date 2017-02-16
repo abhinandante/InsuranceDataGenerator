@@ -15,7 +15,7 @@ public class InsuranceMockUp {
 	
 	private static final long unixTime = System.currentTimeMillis() / 1000L;
 	private static final DataFactory df = new DataFactory();
-	private static final String[] countryArray = { "Singpore", "Burma", "Malayasia", "Phillipines", "Bangladesh" };
+	private static final String[] countryArray = { "Singapore", "Burma", "Malaysia", "Phillippines", "Bangladesh" };
 	private static final String[] businessArray = { "0", "1", "0", "1", "0" };
 	private static final String[] AssetsTypes = {"farmland","tractor","farming", "equipments","seeds"};
 	private static final String[] crop={"Rice","Wheat","Maize","Barley"};
@@ -47,7 +47,7 @@ public class InsuranceMockUp {
 		String filePath1 = saveDir + "/clientAssets" + unixTime + ".csv";
 		CSVWriter clientAssetswriter = new CSVWriter(new FileWriter(filePath1), CSVWriter.DEFAULT_SEPARATOR,
 				CSVWriter.NO_QUOTE_CHARACTER);
-		String clientAssetswriterInfoHeader = "AssetsID,ZoneID,Address,Country,types_of_assets,types_of_crops,total_yeild_yearly,multicropping,assets_type";
+		String clientAssetswriterInfoHeader = "AssetsID,ZoneID,Address,Country,types_of_assets,types_of_crops,total_yeild_yearly,multicropping,assets_type(shared/own)";
 		clientAssetswriter.writeNext(clientAssetswriterInfoHeader.split(","));
 		clientAssetswriter.flush();
 		
@@ -71,7 +71,7 @@ public class InsuranceMockUp {
 		String filePath4 = saveDir + "/pestControl" + unixTime + ".csv";
 		CSVWriter pestControl = new CSVWriter(new FileWriter(filePath4), CSVWriter.DEFAULT_SEPARATOR,
 						CSVWriter.NO_QUOTE_CHARACTER);
-		String pestControlHeader = "ID,HYM_Seed,Pesticide_Use,Recent_Disease,Recent_loss";
+		String pestControlHeader = "ID,HYM_Seed,Pesticide_Use,Recent_Disease,Recent_loss,Asset ID,Zone ID";
 		pestControl.writeNext(pestControlHeader.split(","));
 		pestControl.flush();
 		
@@ -152,8 +152,8 @@ public class InsuranceMockUp {
 		String typesofInsurance=InsuranceTypes[index];
 		String Insurance_Name=InsuranceNames[index];
 		int Insurance_Ammount=df.getNumberBetween(income/10, (income/10)*2);
-		int Premium_Ammount=0;
-		int Coverage_Amount=0;
+		int Premium_Ammount=df.getNumberBetween(200, 1500);
+		int Coverage_Amount=df.getNumberBetween(50000, 100000);
 		String csvRow=policyID+","+typesofInsurance+","+Insurance_Name+","+Insurance_Ammount+","+Premium_Ammount+","+Coverage_Amount;
 		writer.writeNext(csvRow.split(","));
 		writer.flush();
@@ -214,10 +214,11 @@ public class InsuranceMockUp {
 	
 	public static void genetateClaims(String Client_ID,String policyID, CSVWriter writer) throws IOException{
 		
+		SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd");
 		String claimsID=df.getRandomChars(1)+String.valueOf(df.getNumberBetween(22222222, 888888888));
 		int claimAmmount=df.getNumberBetween(50000, 100000);
 		now.add(Calendar.MONTH, -3);
-		String claimsDate = df.getDateBetween(now.getTime(), new Date()).toString();
+		String claimsDate =ft.format(df.getDateBetween(now.getTime(), new Date()));
 		String defaulter = businessArray[df.getNumberBetween(0, 4)]; 
 		int preminumQualified = df.getNumberBetween(10000, 80000);
 		String csvRow=claimsID+","+claimAmmount+","+claimsDate+","+defaulter+","+preminumQualified+","+Client_ID+","+policyID;
